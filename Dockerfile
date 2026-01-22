@@ -1,4 +1,4 @@
-FROM php:8.1-apache
+FROM php:8.1-cli
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -31,15 +31,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Apache configuration
-RUN a2enmod rewrite
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
-
-# Expose port
-EXPOSE 80
-
-# Start Apache
+# Start PHP built-in server
 CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan migrate --force && \
-    apache2-foreground
+    php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
